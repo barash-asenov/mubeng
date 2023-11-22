@@ -1,0 +1,8 @@
+services:
+  mubeng:
+    build:
+      context: .
+
+  redis:
+    image: redis:7.2.3-alpine3.18
+    restart: always
