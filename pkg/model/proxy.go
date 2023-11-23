@@ -2,11 +2,12 @@ package model
 
 import "time"
 
-type ProxyStatus string
+type ProxyStatus int32
 
 const (
-	Active   ProxyStatus = "Active"
-	Inactive ProxyStatus = "Inactive"
+	_ ProxyStatus = iota
+	ActiveStatus
+	InactiveStatus
 )
 
 type Proxy struct {
