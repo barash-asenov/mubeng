@@ -1,22 +1,22 @@
 package common
 
 var (
-  // App name
-  App = "mubeng"
-  // Version of mubeng itself
-  Version = ""
-  // Email handles of developer
-  Email = "infosec@kitabisa.com"
-  // Banner of mubeng
-  Banner = `
+	// App name
+	App = "mubeng"
+	// Version of mubeng itself
+	Version = ""
+	// Email handles of developer
+	Email = "infosec@kitabisa.com"
+	// Banner of mubeng
+	Banner = `
            _   ` + Version + `
  _____ _ _| |_ ___ ___ ___ 
 |     | | | . | -_|   | . |
 |_|_|_|___|___|___|_|_|_  |
                       |___|
  ` + Email
-  // Usage of mubeng
-  Usage = `
+	// Usage of mubeng
+	Usage = `
   mubeng [-c|-a :8080] -f file.txt [options...]
 
 Options:
@@ -25,6 +25,7 @@ Options:
     -o, --output <FILE>              Write log output to FILE
     -t, --timeout <TIME>             Max. time allowed for connection (default: 30s)
     -u, --update                     Update mubeng to the latest stable version
+    -R, --redis <REDIS_URI>          Redis URI for persistence on redis layer                     
     -v, --verbose                    Verbose mode
     -V, --version                    Show current mubeng version
   

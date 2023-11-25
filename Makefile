@@ -11,6 +11,7 @@ test:
 	@echo "Testing ${APP_NAME} package ${VERSION}"
 	@go test -short ktbs.dev/mubeng/pkg/mubeng
 	@go test -short ktbs.dev/mubeng/pkg/helper
+	@go test ./internal/...
 
 test-extra: golangci-lint test
 
