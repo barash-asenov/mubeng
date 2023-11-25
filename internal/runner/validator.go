@@ -1,14 +1,20 @@
 package runner
 
 import (
+	"context"
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/redis/go-redis/v9"
 	"ktbs.dev/mubeng/common"
 	"ktbs.dev/mubeng/internal/proxymanager"
+	proxyStorage "ktbs.dev/mubeng/internal/storage/redis"
 )
+
+const rootKey = "mubeng_proxies"
 
 // validate user-supplied option values before Runner.
 func validate(opt *common.Options) error {
@@ -26,6 +32,23 @@ func validate(opt *common.Options) error {
 	opt.ProxyManager, err = proxymanager.New(opt.File)
 	if err != nil {
 		return err
+	}
+
+	if opt.RedisURI != "" {
+		opts, err := redis.ParseURL(opt.RedisURI)
+		if err != nil {
+			return err
+		}
+
+		redisClient := redis.NewClient(opts)
+
+		err = redisClient.Ping(context.Background()).Err()
+		if err != nil {
+			log.Panic("err: ", err)
+			return err
+		}
+
+		opt.ProxyStorer = proxyStorage.NewProxyStorage(rootKey, redisClient)
 	}
 
 	validMethod := map[string]bool{

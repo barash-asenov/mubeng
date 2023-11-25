@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"github.com/sourcegraph/conc/pool"
 	"ktbs.dev/mubeng/common"
 	"ktbs.dev/mubeng/pkg/helper"
+	"ktbs.dev/mubeng/pkg/model"
 	"ktbs.dev/mubeng/pkg/mubeng"
 )
 
@@ -26,8 +28,8 @@ func Do(opt *common.Options) {
 		address := helper.EvalFunc(proxy)
 
 		p.Go(func() {
-			addr, err := check(address, opt.Timeout)
-			if len(opt.Countries) > 0 && !isMatchCC(opt.Countries, addr.Country) {
+			checkRes, err := check(address, opt.Timeout)
+			if len(opt.Countries) > 0 && !isMatchCC(opt.Countries, checkRes.Country) {
 				return
 			}
 
@@ -35,12 +37,25 @@ func Do(opt *common.Options) {
 				if opt.Verbose {
 					fmt.Printf("[%s] %s\n", aurora.Red("DIED"), address)
 				}
-			} else {
-				fmt.Printf("[%s] [%s] [%s] %s\n", aurora.Green("LIVE"), aurora.Magenta(addr.Country), aurora.Cyan(addr.IP), address)
 
-				if opt.Output != "" {
-					fmt.Fprintf(opt.Result, "%s\n", address)
-				}
+				return
+			}
+
+			fmt.Printf("[%s] [%s] [%s] %s\n", aurora.Green("LIVE"), aurora.Magenta(checkRes.Country), aurora.Cyan(checkRes.IP), address)
+
+			if opt.Output != "" {
+				fmt.Fprintf(opt.Result, "%s\n", address)
+			}
+
+			if opt.ProxyStorer != nil {
+				opt.ProxyStorer.AddProxy(context.Background(), &model.Proxy{
+					Address: address,
+					Country: checkRes.Country,
+					Latency: model.ProxyLatency{
+						Duration: checkRes.Latency,
+					},
+					LastStatus: model.ActiveStatus,
+				})
 			}
 		})
 	}
@@ -82,10 +97,14 @@ func check(address string, timeout time.Duration) (IPInfo, error) {
 	client.Timeout = timeout
 	req.Header.Add("Connection", "close")
 
+	startTime := time.Now()
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return ipinfo, err
 	}
+
+	latency := time.Since(startTime)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -99,6 +118,8 @@ func check(address string, timeout time.Duration) (IPInfo, error) {
 
 	defer resp.Body.Close()
 	defer tr.CloseIdleConnections()
+
+	ipinfo.Latency = latency
 
 	return ipinfo, nil
 }

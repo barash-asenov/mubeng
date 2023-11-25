@@ -60,6 +60,9 @@ func Options() *common.Options {
 	flag.IntVar(&opt.Goroutine, "g", 10, "")
 	flag.IntVar(&opt.Goroutine, "goroutine", 10, "")
 
+	flag.StringVar(&opt.RedisURI, "R", "", "")
+	flag.StringVar(&opt.RedisURI, "redis", "", "")
+
 	flag.Usage = func() {
 		showBanner()
 		showUsage()
